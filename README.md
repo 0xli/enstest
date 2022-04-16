@@ -37,3 +37,39 @@ eth reverseRegistrar:0xFdb1b60AdFCba28f28579D709a096339F5bEb651
 beagles.eth
 ```
 ```
+
+## multicall is different in ethers
+```
+let ABI=["function setText(bytes32 node, string calldata key, string calldata value) external"];
+let iface = new ethers.utils.Interface(ABI);
+var textNickname = iface.encodeFunctionData("setText",[mynode, "nickname", names[i]+' is me']);
+```
+https://medium.com/@itsMarcoSolis/integrating-ens-into-your-reactjs-dapp-using-the-multicall-contract-fca126b9ffec
+
+https://medium.com/@itsMarcoSolis/integrating-the-multicall-contract-into-your-reactjs-dapp-5b08cd649d5d
+
+https://github.com/ethers-io/ethers.js/issues/478
+
+https://github.com/ethers-io/ethers.js/issues/826
+
+https://web3js.readthedocs.io/en/v1.2.0/web3-eth-contract.html#methods-mymethod-encodeabi
+
+```
+In v4:
+
+let ABI = [
+"function transfer(address to, uint amount)"
+];
+let iface = new ethers.utils.Interface(ABI);
+iface.functions.transfer.encode([ "0x1234567890123456789012345678901234567890", ethers.utils.parseEther("1.0") ]);
+'0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000de0b6b3a7640000'
+
+In v5:
+
+let ABI = [
+"function transfer(address to, uint amount)"
+];
+let iface = new ethers.utils.Interface(ABI);
+iface.encodeFunctionData("transfer", [ "0x1234567890123456789012345678901234567890", parseEther("1.0") ])
+'0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000de0b6b3a7640000'
+```

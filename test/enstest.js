@@ -64,6 +64,7 @@ async function main() {
         //,'liwei.eth'
         ,'fichat.eth'];//,'ltc'];
     for (let i=0;i<names.length;i++) {
+        let mynode = namehash.hash(names[i]);
         let tld=await ens.owner(namehash.hash(names[i]))
         //if (tld && tld.length>0) {
         if (tld != '0x0000000000000000000000000000000000000000') {
@@ -71,18 +72,35 @@ async function main() {
             let registar = await FIFSRegistrar.attach(tld);
             let resolverAddress=await ens.resolver(namehash.hash(names[i]))
             console.log(names[i]+' resolver:',resolverAddress);
-            let nickname = await resolver.text(namehash.hash(names[i]),'email');
+            let email = await resolver.text(namehash.hash(names[i]),'email');
+            let nickname = await resolver.text(namehash.hash(names[i]),'nickname');
+            let url = await resolver.text(namehash.hash(names[i]),'url');
             console.log('get nickname:',nickname);
+            console.log('get email:',email);
+            console.log('get url:',nickname);
             if (defaultAccount==tld && nickname.length==0) {
+                // this only work for web3js
+//              https://web3js.readthedocs.io/en/v1.2.0/web3-eth-contract.html#methods-mymethod-encodeabi
+//                await resolver['setAddr(bytes32,address)'](resolverNode, resolver.address,{gasLimit:210000});
+//                var textNickname = resolver.contract.methods.setText(mynode, "nickname", names[i]+' is me').encodeABI();
+//                var textUrl = resolver.contract.methods.setText(mynode, "url", "https://beagle.chat/"+names[i]).encodeABI();
+
+                // this works for ethers v5 or newer
+                var textNickname = resolver.interface.encodeFunctionData("setText",[mynode, "nickname", names[i]+' is me']);
+                var textUrl = resolver.interface.encodeFunctionData("setText",[mynode, "url", "https://beagle.chat/"+names[i]]);
+                var tx = await resolver.multicall([textNickname, textUrl], {from: defaultAccount,gasLimit:410000});
                 let result = await resolver.setText(namehash.hash(names[i]), 'email',  names[i]+'@beagle.chat', {gasLimit: 410000});
-                console.log('set nickname', result);
+                console.log('set email', result);
             }
             else
                 console.log('skip set nickname, owner is', tld);
-            //registerName(ens,registar,resolver,tlds[i],'beagle',accounts[0]?accounts[0]:defaultAccount);
             continue;
         }
-        continue;
+        else{
+            //registerName(ens,registar,resolver,tlds[i],'beagle',accounts[0]?accounts[0]:defaultAccount);
+        }
+
+            continue;
         tld=tlds[i];
         console.log(tld,'registrar deploy ...');
         const registrar = await FIFSRegistrar.deploy(ens.address, namehash.hash(tld),{gasLimit: 410000 });
